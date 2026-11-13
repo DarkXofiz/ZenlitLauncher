@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Novara mark; scalable TV launcher banner, no game assets. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="320dp" android:height="180dp"
+    android:viewportWidth="320" android:viewportHeight="180">
+    <path android:fillColor="#0B1030" android:pathData="M0,0h320v180h-320z" />
+    <path android:strokeColor="#5EEAD4" android:strokeWidth="14" android:strokeLineCap="round" android:pathData="M132,62L188,118" />
+    <path android:strokeColor="#7C6CFF" android:strokeWidth="14" android:strokeLineCap="round" android:pathData="M188,88L188,118" />
+    <path android:strokeColor="#F4F7FF" android:strokeWidth="14" android:strokeLineCap="round" android:pathData="M132,62L132,118" />
+    <path android:fillColor="#FFD98A" android:pathData="M188,46L192,58L204,62L192,66L188,78L184,66L172,62L184,58z" />
+</vector>

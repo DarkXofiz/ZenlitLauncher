@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+  <title>Novara</title>
+  <defs>
+    <linearGradient id="bg" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="16" y2="16"><stop stop-color="#121838"/><stop offset="1" stop-color="#070a1c"/></linearGradient>
+    <linearGradient id="d" gradientUnits="userSpaceOnUse" x1="4.48" y1="4.96" x2="11.52" y2="11.84"><stop stop-color="#5eead4"/><stop offset="1" stop-color="#38bdf8"/></linearGradient>
+    <linearGradient id="r" gradientUnits="userSpaceOnUse" x1="11.52" y1="6.72" x2="11.52" y2="11.84"><stop stop-color="#38bdf8"/><stop offset="1" stop-color="#7c6cff"/></linearGradient>
+    <clipPath id="tile"><rect width="16" height="16" rx="3.52"/></clipPath>
+  </defs>
+  <g clip-path="url(#tile)">
+    <path d="M4.48 4.96L11.52 11.84" stroke="url(#d)" stroke-width="1.84" stroke-linecap="round" fill="none"/>
+    <path d="M11.52 6.72L11.52 11.84" stroke="url(#r)" stroke-width="1.84" stroke-linecap="round" fill="none"/>
+    <path d="M4.48 4.96L4.48 11.84" stroke="#f4f7ff" stroke-width="1.84" stroke-linecap="round" fill="none"/>
+    <polygon points="11.520,2.160 12.082,3.758 13.680,4.320 12.082,4.882 11.520,6.480 10.958,4.882 9.360,4.320 10.958,3.758" fill="#ffd98a"/>
+  </g>
+</svg>
