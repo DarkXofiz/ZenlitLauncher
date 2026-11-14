@@ -479,7 +479,7 @@ fn agent() -> ureq::Agent {
         .build()
 }
 
-fn describe(e: ureq::Error, what: &str) -> String {
+fn http_error(e: ureq::Error, what: &str) -> String {
     match e {
         ureq::Error::Status(404, _) => format!("{what}: not found (HTTP 404)."),
         ureq::Error::Status(429, _) => format!("{what}: too many requests, try again in a minute."),
@@ -492,7 +492,7 @@ fn describe(e: ureq::Error, what: &str) -> String {
 }
 
 fn get_json(url: &str, what: &str) -> Result<Value, String> {
-    let response = agent().get(url).call().map_err(|e| describe(e, what))?;
+    let response = agent().get(url).call().map_err(|e| http_error(e, what))?;
     let mut body = String::new();
     response
         .into_reader()
@@ -707,7 +707,7 @@ fn download(
     }
     let part = target.with_extension("part");
     progress(shared, format!("Downloading {label}"), from);
-    let response = agent().get(url).call().map_err(|e| describe(e, label))?;
+    let response = agent().get(url).call().map_err(|e| http_error(e, label))?;
     let total = response
         .header("Content-Length")
         .and_then(|v| v.parse::<u64>().ok())
