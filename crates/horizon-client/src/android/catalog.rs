@@ -235,7 +235,6 @@ impl Config {
             let _ = config.save(home);
         }
         config.name = truncate_player_name(&config.name);
-        config.mod_source = crate::shader_catalog::Origin::Horizon;
         config.theme.sanitize();
         horizon_client::ui_theme::set_active_theme(config.theme.resolve());
         horizon_client::ui_theme::motion::set_reduced_motion(
@@ -1975,7 +1974,7 @@ impl Catalog {
         let source = match self.page {
             Page::Packs => browser::SourceId::Modrinth,
             Page::Shaders => self.config.shader_source.source(),
-            Page::Mods => browser::SourceId::Horizon,
+            Page::Mods => self.config.mod_source.source(),
             _ => browser::SourceId::Horizon,
         };
         let query_offset = if source == browser::SourceId::Horizon {
@@ -2007,6 +2006,10 @@ impl Catalog {
                 "{} Horizon Native Shaders (.hshader) — tap Install to activate",
                 items.len()
             )
+        } else if self.page == Page::Mods
+            && self.config.mod_source == crate::shader_catalog::Origin::Modrinth
+        {
+            format!("{} Modrinth mods — tap Install to download", items.len())
         } else if self.page == Page::Mods {
             let bundled_matches = horizon_client::mod_list::ANDROID_BUNDLED
                 .iter()

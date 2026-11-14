@@ -1334,7 +1334,7 @@ class LauncherOverhaulTests(unittest.TestCase):
 
         # 3. Verify Mod source restricted to Horizon, while Shaders retains Modrinth option
         cat_rs = _read_repo_file("crates/horizon-client/src/android/catalog.rs")
-        self.assertIn("Page::Mods => browser::SourceId::Horizon,", cat_rs)
+        self.assertIn("Page::Mods => self.config.mod_source.source(),", cat_rs)
         self.assertIn("Page::Shaders => self.config.shader_source.source(),", cat_rs)
         self.assertIn("pub fn install_modrinth_jar_with_port_pack(", cat_rs)
         self.assertIn('if lower_fname.ends_with(".mrpack") || project.kind == Kind::Modpack {', cat_rs)

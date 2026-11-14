@@ -2026,8 +2026,14 @@ impl Launcher {
             // Search bar + Search button + Open folder / Import file pills
             let search_y = 98.0 + slide_y;
             let search_btn_w = 98.0;
-            let field_w = (content_w - search_btn_w - 8.0).max(120.0);
-            let search_hint = if page == Page::Mods {
+            let seg_w = 88.0;
+            let source_group_w = if page == Page::Mods { seg_w * 2.0 + 3.0 + 8.0 } else { 0.0 };
+            let field_w = (content_w - search_btn_w - 8.0 - source_group_w).max(120.0);
+            let search_hint = if page == Page::Mods
+                && self.catalog.config.mod_source == crate::shader_catalog::Origin::Modrinth
+            {
+                "Search Modrinth mods..."
+            } else if page == Page::Mods {
                 "Search mods or paste .hmod HTTPS link..."
             } else {
                 "Search catalog..."
@@ -2056,6 +2062,20 @@ impl Launcher {
                 Action::Search,
                 true,
             );
+            if page == Page::Mods {
+                use crate::shader_catalog::Origin;
+                let group_x = content_x + field_w + 8.0 + search_btn_w + 8.0;
+                for (i, (origin, label)) in
+                    [(Origin::Horizon, "Normal"), (Origin::Modrinth, "Modrinth")]
+                        .into_iter()
+                        .enumerate()
+                {
+                    let rect = [group_x + i as f32 * (seg_w + 3.0), search_y, seg_w, 36.0];
+                    let active = self.catalog.config.mod_source == origin;
+                    ui.m3_connected_segment(rect, i, 2, label, active, Some(Icon::Mods));
+                    self.targets.push((rect, Action::ModSource(origin)));
+                }
+            }
 
             let kind = match page {
                 Page::Mods => horizon_client::content_files::Kind::Mods,
@@ -2097,7 +2117,9 @@ impl Launcher {
                 );
             }
 
-            let bundled: Vec<_> = if page == Page::Mods {
+            let bundled: Vec<_> = if page == Page::Mods
+                && self.catalog.config.mod_source == crate::shader_catalog::Origin::Horizon
+            {
                 let query = self.catalog.query.trim().to_lowercase();
                 horizon_client::mod_list::ANDROID_BUNDLED
                     .into_iter()
@@ -2123,7 +2145,8 @@ impl Launcher {
                             .any(|(id, _, _)| *id == p.id))
                 })
                 .collect();
-            let is_horizon_paged = page == Page::Mods
+            let is_horizon_paged = (page == Page::Mods
+                && self.catalog.config.mod_source == crate::shader_catalog::Origin::Horizon)
                 || (page == Page::Shaders
                     && self.catalog.config.shader_source == crate::shader_catalog::Origin::Horizon);
             let total_horizon_items = bundled.len() + catalog_rows.len();
@@ -7668,7 +7691,9 @@ impl Launcher {
             }
             Some(Action::Install(i)) => self.catalog.install(&self.home, i),
             Some(Action::Next) => {
-                let is_horizon_paged = self.catalog.page == Page::Mods
+                let is_horizon_paged = (self.catalog.page == Page::Mods
+                        && self.catalog.config.mod_source
+                            == crate::shader_catalog::Origin::Horizon)
                     || (self.catalog.page == Page::Shaders
                         && self.catalog.config.shader_source
                             == crate::shader_catalog::Origin::Horizon);
@@ -7713,7 +7738,9 @@ impl Launcher {
                 if self.catalog.offset >= crate::catalog::CATALOG_PAGE_SIZE {
                     self.catalog.offset -= crate::catalog::CATALOG_PAGE_SIZE;
                     self.catalog.scroll = 0.0;
-                    let is_horizon_paged = self.catalog.page == Page::Mods
+                    let is_horizon_paged = (self.catalog.page == Page::Mods
+                        && self.catalog.config.mod_source
+                            == crate::shader_catalog::Origin::Horizon)
                         || (self.catalog.page == Page::Shaders
                             && self.catalog.config.shader_source
                                 == crate::shader_catalog::Origin::Horizon);

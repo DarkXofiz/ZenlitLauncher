@@ -902,28 +902,22 @@ fn stage(request: Request, mut input: std::fs::File, name: String) -> Result<()>
                         return Ok(());
                     }
                 }
-                if ext == "jar" {
-                    match horizon_client::jar_transpiler::transpile_jar_to_horizon_mods(&dest, profile_root) {
-                        Ok(transpiled) => {
-                            on.disabled.remove(&transpiled.id);
-                            on.enabled.insert(transpiled.id.clone());
-                            on.save(profile_root);
-                            imported(
-                                format!(
-                                    "Auto-compiled & enabled '{}' -> {}.hnmod + .hmod ({}) — ready in game!",
-                                    transpiled.title,
-                                    transpiled.id,
-                                    transpiled.features.join(", ")
-                                ),
-                                Kind::Mods,
-                            );
-                            return Ok(());
-                        }
-                        Err(reason) => {
-                            let _ = std::fs::remove_file(&dest);
-                            return Err(format!("Could not port '{name}': {reason}").into());
-                        }
-                    }
+                if ext == "jar"
+                    && let Ok(transpiled) = horizon_client::jar_transpiler::transpile_jar_to_horizon_mods(&dest, profile_root)
+                {
+                    on.disabled.remove(&transpiled.id);
+                    on.enabled.insert(transpiled.id.clone());
+                    on.save(profile_root);
+                    imported(
+                        format!(
+                            "Auto-compiled & enabled '{}' -> {}.hnmod + .hmod ({}) — ready in game!",
+                            transpiled.title,
+                            transpiled.id,
+                            transpiled.features.join(", ")
+                        ),
+                        Kind::Mods,
+                    );
+                    return Ok(());
                 }
                 on.save(profile_root);
                 imported(
