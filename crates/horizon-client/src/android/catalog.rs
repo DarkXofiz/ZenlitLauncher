@@ -100,6 +100,9 @@ pub struct Config {
     pub last_name_changed: String,
     #[serde(default)]
     pub custom_profile_name: String,
+    /// Installed Fabric profile chosen on the Play page; empty means vanilla.
+    #[serde(default)]
+    pub fabric_loader: String,
     #[serde(default)]
     pub custom_profile_desc: String,
     #[serde(default)]
@@ -146,6 +149,7 @@ impl Default for Config {
             disable_game_animations: false,
             last_name_changed: String::new(),
             custom_profile_name: String::new(),
+            fabric_loader: String::new(),
             custom_profile_desc: String::new(),
             preset_edit_mode: String::new(),
             max_fps_unlocked_v2: true,

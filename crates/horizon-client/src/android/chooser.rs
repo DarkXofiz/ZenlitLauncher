@@ -18,6 +18,7 @@ pub(super) enum Kind {
     InputHost,
     UiScale,
     ControlProfile,
+    Version,
 }
 pub(super) struct Chooser {
     title: &'static str,
@@ -246,6 +247,29 @@ impl Launcher {
                 (
                     "Choose profile",
                     "Each profile keeps its own game settings and saves.",
+                    choices,
+                )
+            }
+            Kind::Version => {
+                let game_home = c.game_home(&self.home);
+                let installed = super::fabric::installed_profiles(&game_home);
+                let mut choices = vec![(
+                    "Vanilla 26.3".to_owned(),
+                    "Minecraft Java Edition 26.3".to_owned(),
+                    Action::ChooseVersion(0),
+                    c.fabric_loader.is_empty(),
+                )];
+                for (i, id) in installed.iter().enumerate() {
+                    let (title, sub) = super::fabric::describe(&game_home, id);
+                    choices.push((title, sub, Action::ChooseVersion(i + 1), c.fabric_loader == *id));
+                }
+                (
+                    "Choose version",
+                    if installed.is_empty() {
+                        "No Fabric version is installed yet. Install one from the Fabric page."
+                    } else {
+                        "Installed Fabric versions are listed here. The native engine starts Minecraft 26.3 and cannot load Fabric yet."
+                    },
                     choices,
                 )
             }

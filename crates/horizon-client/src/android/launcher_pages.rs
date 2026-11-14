@@ -320,6 +320,8 @@ pub(super) enum Action {
     WardrobeRotate(i8),
     WardrobeZoom(bool),
     WardrobeHideCape,
+    Version,
+    ChooseVersion(usize),
     FabricGame(usize),
     FabricLoader(usize),
     FabricInstall,
@@ -1718,6 +1720,14 @@ impl Launcher {
                     touch_cfg.control_style.label(),
                     touch_cfg.preset_name
                 );
+                let version_tag = if self.catalog.config.fabric_loader.is_empty() {
+                    "Version: 26.3".to_owned()
+                } else {
+                    format!(
+                        "Version: {}",
+                        super::fabric::short_label(&self.catalog.config.fabric_loader)
+                    )
+                };
                 let mut chip_x = content_x + 16.0;
                 for (lbl, act, hi, ic) in [
                     (renderer_tag.as_str(), Action::Renderer, true, Icon::Monitor),
@@ -1733,10 +1743,33 @@ impl Launcher {
                         false,
                         Icon::Gamepad,
                     ),
+                    (
+                        version_tag.as_str(),
+                        Action::Version,
+                        !self.catalog.config.fabric_loader.is_empty(),
+                        Icon::Fabric,
+                    ),
                 ] {
-                    let cw_chip = (ui.measure(Face::SemiBold, 10.5, lbl) + 34.0)
-                        .clamp(92.0, (content_w - 32.0) * 0.46);
-                    if chip_x + cw_chip > content_x + content_w - 12.0 {
+                    let avail = content_x + content_w - 12.0 - chip_x;
+                    let is_version = act == Action::Version;
+                    // The version chip is last: shorten its text rather than lose it.
+                    if is_version && avail < 72.0 {
+                        break;
+                    }
+                    let fitted;
+                    let lbl = if is_version {
+                        fitted = ui.fit_text(Face::SemiBold, 10.5, lbl, (avail - 34.0).max(20.0));
+                        fitted.as_str()
+                    } else {
+                        lbl
+                    };
+                    let cw_chip = if is_version {
+                        (ui.measure(Face::SemiBold, 10.5, lbl) + 34.0).min(avail)
+                    } else {
+                        (ui.measure(Face::SemiBold, 10.5, lbl) + 34.0)
+                            .clamp(92.0, (content_w - 32.0) * 0.46)
+                    };
+                    if !is_version && chip_x + cw_chip > content_x + content_w - 12.0 {
                         break;
                     }
                     let cr = [chip_x, chip_y, cw_chip, 24.0];
@@ -7527,7 +7560,12 @@ impl Launcher {
                 self.catalog.offset = 0;
                 self.catalog.browse(&self.home);
             }
-            Some(Action::Play) => self.action(events)?,
+            Some(Action::Play) => {
+                if !self.catalog.config.fabric_loader.is_empty() {
+                    self.catalog.status = "Fabric is selected, but Novara's native engine cannot load Fabric yet. Starting Minecraft 26.3.".into();
+                }
+                self.action(events)?;
+            }
             Some(Action::WardrobeKind(cape)) => {
                 self.wardrobe.set_tab(cape);
                 self.catalog.scroll = 0.0;
@@ -7685,6 +7723,17 @@ impl Launcher {
                 }
             }
             Some(Action::Profile) => self.open_chooser(chooser::Kind::Profile),
+            Some(Action::Version) => self.open_chooser(chooser::Kind::Version),
+            Some(Action::ChooseVersion(index)) => {
+                let game_home = self.catalog.config.game_home(&self.home);
+                let installed = super::fabric::installed_profiles(&game_home);
+                self.catalog.config.fabric_loader = index
+                    .checked_sub(1)
+                    .and_then(|i| installed.get(i).cloned())
+                    .unwrap_or_default();
+                self.catalog.config.save(&self.home)?;
+                self.chooser = None;
+            }
             Some(Action::Renderer) => self.open_chooser(chooser::Kind::Renderer),
             Some(Action::RenderScale) => self.open_chooser(chooser::Kind::RenderScale),
             Some(Action::ChooseRenderScale(scale)) => {

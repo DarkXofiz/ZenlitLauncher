@@ -603,7 +603,12 @@ fn profile_file(home: &Path, game: &str, loader: &str) -> PathBuf {
 }
 
 fn profile_present(home: &Path, game: &str, loader: &str) -> bool {
-    let file = profile_file(home, game, loader);
+    complete(home, &profile_id(game, loader))
+}
+
+/// True when `versions/<id>/<id>.json` exists and every library it lists is on disk.
+fn complete(home: &Path, id: &str) -> bool {
+    let file = home.join("versions").join(id).join(format!("{id}.json"));
     let Ok(text) = std::fs::read_to_string(file) else {
         return false;
     };
@@ -618,6 +623,40 @@ fn profile_present(home: &Path, game: &str, loader: &str) -> bool {
                 .is_some_and(|p| std::fs::metadata(home.join("libraries").join(p)).is_ok_and(|m| m.len() > 0))
         })
     })
+}
+
+/// Fully installed Fabric profile ids in `home`, sorted.
+pub(super) fn installed_profiles(home: &Path) -> Vec<String> {
+    let mut ids: Vec<String> = std::fs::read_dir(home.join("versions"))
+        .into_iter()
+        .flatten()
+        .flatten()
+        .filter_map(|e| e.file_name().into_string().ok())
+        .filter(|id| id.starts_with("fabric-loader-") && complete(home, id))
+        .collect();
+    ids.sort();
+    ids
+}
+
+/// Short label for a profile id, e.g. `Fabric 0.16.9-1.21.4`.
+pub(super) fn short_label(id: &str) -> String {
+    format!("Fabric {}", id.strip_prefix("fabric-loader-").unwrap_or(id))
+}
+
+/// Title and subtitle for the version chooser, read from the profile's own JSON.
+pub(super) fn describe(home: &Path, id: &str) -> (String, String) {
+    let game = std::fs::read_to_string(home.join("versions").join(id).join(format!("{id}.json")))
+        .ok()
+        .and_then(|t| serde_json::from_str::<Value>(&t).ok())
+        .and_then(|j| j["inheritsFrom"].as_str().map(str::to_owned));
+    let rest = id.strip_prefix("fabric-loader-").unwrap_or(id);
+    match game {
+        Some(game) => {
+            let loader = rest.strip_suffix(&format!("-{game}")).unwrap_or(rest);
+            (format!("Fabric Loader {loader}"), format!("Minecraft {game}"))
+        }
+        None => (format!("Fabric {rest}"), String::new()),
+    }
 }
 
 fn progress(shared: &Mutex<Shared>, stage: impl Into<String>, fraction: f32) {
